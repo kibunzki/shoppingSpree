@@ -56,7 +56,7 @@ function preload() {
     spriteSheet = loadImage('assets/Sprite-large.png');
     pix32 = loadFont('assets/Pix32.ttf')
     fake_receipt = loadFont('assets/FakeReceipt.otf')
-    arcadeclassic = loadFont('assets/ARCADECLASSIC.ttf')
+    arcadeclassic = loadFont('assets/ARCADECLASSIC.TTF')
     barcode = loadFont('assets/fre3of9x.ttf')
 }
 
