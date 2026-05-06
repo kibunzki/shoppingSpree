@@ -16,7 +16,6 @@ const sprites = [];
 
 let basket;
 
-let breadSprite;
 let basketSprite;
 let bw;
 let bh;
@@ -27,7 +26,7 @@ let grid;
 let selectedState;
 
 let timeline;
-let selectedYear;
+let selectedYear = 1980;
 
 let min_wage;
 
@@ -51,9 +50,9 @@ let page = 0;
 // beverages + snacks - 12
 
 function preload() {
-    breadSprite = loadImage('assets/bread.png');
     basketSprite = loadImage('assets/basket.png');
     spriteSheet = loadImage('assets/Sprite-large.png');
+    walletSprite = loadImage('assets/wallet.png')
     pix32 = loadFont('assets/Pix32.ttf')
     fake_receipt = loadFont('assets/FakeReceipt.otf')
     arcadeclassic = loadFont('assets/ARCADECLASSIC.TTF')
@@ -62,24 +61,24 @@ function preload() {
 
 function setup() {
     createCanvas(cX, cY);
-    bw = basketSprite.width / 3 * 2;
-    bh = basketSprite.height / 3 * 2;
-
-    startBtn = new Button(cX - 150, cY - 70, 100, 30, 'Let\'s Go!', () => {if(selectedState != null) {page = 1}})
-    checkOutBtn = new Button(cX - 150, cY - 70, 100, 30, 'Checkout', () => {page = 2; receipt.addItems(basket.getItems())})
+    bw = basketSprite.width / 4 * 3;
+    bh = basketSprite.height / 4 * 3;
 
     basket = new Basket(basketSprite, cX / 2 - bw / 2, cY - bh + 30, bw, 9)
 
-    grid = new StateSelect(100, 100, cX - 100, cY - 100)
+    grid = new StateSelect(130, 100, cX - 100, cY - 100)
 
-    timeline = new TimelineSlider(50, 50, 860, 1980, 2025)
+    timeline = new TimelineSlider(50, 40, 860, 1980, 2025)
 
-    receipt = new Receipt((cX - 350) / 2, 50, 350, 90)
+    receipt = new Receipt(100, 100, 350, 90)
 
-    wallet = new Wallet(50, 50)
+    wallet = new Wallet(cX - 400, 100, walletSprite, 288)
 
-    shelf1 = new Stock(["702111", "702421", "704111", "704211", "708111", "713111", "718311", "701111", "706111", "710411"], cX - 50, cY - 50, 7, 4);
+    shelf1 = new Stock(["702111", "702421", "704111", "704211", "708111", "713111", "718311", "701111", "706111", "710411"], cX - 100, cY - 100, 7, 3);
 
+    startBtn = new Button(cX - 150, cY - 70, 100, 30, 'Let\'s Go!', () => {if(selectedState != null) {page = 1}})
+    checkOutBtn = new Button(cX - 150, cY - 70, 100, 30, 'Checkout', () => {page = 2; receipt.addItems(basket.getItems())})
+    restartBtn = new Button(cX - 150, cY - 70, 100, 30, 'Start Over', () => {page = 0; shelf1.reset(); basket.reset()})
 }
 
 function draw() {
@@ -98,25 +97,48 @@ function draw() {
 function homescreen() {
     page = 0;
     background(0);
-    textSize(30);
+
+    textAlign(LEFT, BOTTOM)
+    textFont(pix32)
+    textSize(15);
+    fill(160)
+    text("press f to fullscreen", 40, cY - 40)
+
+    fill(255)
+    textAlign(CENTER, BOTTOM)
+    textFont(arcadeclassic)
+    textSize(60)
+    text("GROCERY ROAD TRIP", 0, 80, cX)
+
+    textFont(pix32)
+    textSize(25);
     fill(255);
-    if (selectedState && selectedYear) {
-        title = 'shopping at ' + selectedState + ' in ' + selectedYear;
-        text(title, cX / 2, cY - 70);
+    if (!selectedState) {
+        title = "Please select a state";
     }
+    else {
+        title = "Shopping in: " + abbrToState[selectedState]
+    }
+    text(title, 0, cY - 40, cX);
 
     grid.render();
-    timeline.render();
+    // timeline.render();
     startBtn.draw();
 }
 
 
 function bread_and_baked() {
     page = 1;
+    textAlign(LEFT, BOTTOM)
+    textFont(pix32)
+    textSize(15);
+    fill(50)
+    text("drag and drop items into your basket", 40, cY - 40, 200)
+
     shelf1.render();
     basket.render();
     checkOutBtn.draw();
-    mouseDown()
+    mouseDown();
 }
 
 
@@ -125,20 +147,22 @@ function checkout() {
     fill(0)
     receipt.render()
     wallet.render()
+    timeline.render();
+    restartBtn.draw()
 }
 
 
 function mousePressed() {
     if (page == 0) {        
-        timeline.mouseDown(mouseX, mouseY);
+        // timeline.mouseDown(mouseX, mouseY);
         startBtn.mouseDown(mouseX, mouseY)
         grid.mouseDown(mouseX, mouseY);
 
         selectedState = grid.getState();
-        selectedYear = timeline.getYear();
+        // selectedYear = timeline.getYear();
 
-        min_wage = wage_byState[selectedState][selectedYear]
-        console.log(min_wage)
+        // min_wage = wage_byState[selectedState][selectedYear]
+        // console.log(min_wage)
     }
     else if (page == 1) {
         currentItem = shelf1.indexToSerial(shelf1.mouseToIndex(mouseX, mouseY))
@@ -154,40 +178,40 @@ function mousePressed() {
         checkOutBtn.mouseDown(mouseX, mouseY)
         console.log(currentItem)
     }
-    // else if (page == 2) {
-        
-    // }
+    else if (page == 2) {
+        timeline.mouseDown(mouseX, mouseY);
+        receipt.updatePrice(selectedYear);
+        console.log(selectedYear)
+        // selectedYear = timeline.getYear();
+
+        min_wage = wage_byState[selectedState][selectedYear]
+        console.log(min_wage)
+        restartBtn.mouseDown(mouseX, mouseY)
+    }
     
 }
 
 function mouseDragged() {
-    if (page == 0) {
+    if (page == 2) {
         timeline.mouseDrag(mouseX)
-        selectedYear = timeline.getYear();
+        receipt.updatePrice(selectedYear);
+        // selectedYear = timeline.getYear();
     }
 }
 
 function mouseReleased() {
     if (page == 0) {
         startBtn.release();
-        timeline.mouseRelease();
+        // timeline.mouseRelease();
     }
     else if (page == 1) {
-        if (currentItem != null) {
-            if (basket.isInside(mouseX, mouseY)) {
-                console.log("released")
-                basket.addItem(currentItem)
-                currentItem = null;
-            }
-            else {
-                shelf1.toggleVisible(shelf1.serialToIndex(currentItem), true)
-                currentItem = null;
-            }
-        }
+        basket.release(mouseX, mouseY)
         checkOutBtn.release();
     }
-    
-    
+    else if (page == 2) {
+        timeline.mouseRelease();
+        restartBtn.release();
+    }
 }
 
 function mouseDown() {
@@ -201,4 +225,13 @@ function keyPressed() {
     let fs = fullscreen();
     fullscreen(!fs);
   }
+}
+
+function mouseWheel(event) {
+    if (page == 1) {
+        shelf1.scroll(event)
+    }
+    else if (page == 2) {
+        receipt.scroll(event, mouseX, mouseY)
+    }
 }

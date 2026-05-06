@@ -9,6 +9,7 @@ class Receipt {
         this.w = w;
         this.angle = angle;
         this.gap = 10;
+        this.scrollDelta = 0;
 
         textSize(10)
         textFont(fake_receipt)
@@ -19,11 +20,28 @@ class Receipt {
         }
     }
 
-    addItems(serials) {
-        for (let i = 0; i < serials.length; i++) {
-            let price = price_bySeriesYear[serials[i]][selectedYear]
+    isInside(x, y) {
+        return x > this.x && x < this.x + this.w && y > this.y && y < cY
+    }
 
-            this.items[serials[i]] = [serialLookup[serials[i]], price]
+    updatePrice(year) {
+        this.total = 0
+        for (let serial in this.items) {
+            let price = price_bySeriesYear[serial][year] * itemWeights[serial]
+
+            this.items[serial] = [serialToLabel(serial), price]
+            this.total += price
+        }
+        this.total = this.total.toFixed(2)
+    }
+
+    addItems(serials) {
+        this.total = 0
+        this.items = {}
+        for (let i = 0; i < serials.length; i++) {
+            let price = price_bySeriesYear[serials[i]][selectedYear] * itemWeights[serials[i]]
+
+            this.items[serials[i]] = [serialToLabel(serials[i]), price]
             this.total += price
         }
         this.total = this.total.toFixed(2)
@@ -59,11 +77,25 @@ class Receipt {
         current_height += textAscent() + gap  
     }
 
-    render() {
-        current_height = 20;
+    scroll(event, mouseX, mouseY) {
+        if (this.isInside(mouseX, mouseY)) {
+            this.scrollDelta += event.delta * (-1/2);
+            this.scrollDelta = max(min(0, this.scrollDelta), - cY / 3)
+
+            console.log(this.scrollDelta)
+        }
+    }
+
+    print_content() {
+        current_height = 20 + this.scrollDelta;
 
         fill(255)
         rect(this.x, this.y, this.w, cY)
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, cY);
+        drawingContext.clip();
 
         fill(0)
         textFont(arcadeclassic)
@@ -90,11 +122,17 @@ class Receipt {
 
         this.textLine(this.separator, null, null, 10, 0, true)
 
-        this.textLine("TOTAL", this.total, null, 14)
+        this.textLine("TOTAL", this.total, (this.total / min_wage).toFixed(1), 14)
 
         current_height += 20
 
         textFont(barcode)
         this.textLine("*Hop Hop 4.032*", null, null, 44, 0, true)
+        drawingContext.restore();
+    }
+
+    render() {
+        this.print_content();
+        scrollBar(this.x - 10, this.y, this.scrollDelta, cY - this.y, - cY / 3)
     }
 }

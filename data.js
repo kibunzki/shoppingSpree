@@ -9,6 +9,7 @@ CA,California
 CO,Colorado
 CT,Connecticut
 DE,Delaware
+DC,Washington D.C.
 FL,Florida
 GA,Georgia
 HI,Hawaii
@@ -2163,6 +2164,28 @@ function parsePriceData(csvText) {
     }
 
     return [bySeriesYear, bySeries];
+}
+
+let itemWeights = {
+    "702111": 1.25,
+    "702421": .5,
+    "704111": 1,
+    "704211": 1.5,
+    "708111": 1,
+    "713111": 1,
+    "718311": .4,
+    "701111": 5,
+    "706111": 5,
+    "710411": 1.5,
+    "711211":"bananas per lb.",
+    "712311":"tomatoes per lb.",
+    "711412":"lemons per lb.",
+    "701312":"white rice per lb.",
+    "717311":"ground roast coffee per lb.",
+    "712211":"iceberg lettuce per lb.",
+    "711411":"grapefruit per lb.",
+    "703112":"ground beef per lb.",
+    "715212":"white sugar per lb.",
 }
 
 let abbrToState = parseAbbr(abbrTable)

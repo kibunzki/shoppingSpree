@@ -46,13 +46,16 @@ class TimelineSlider {
         // clicking anywhere on track jumps to that year
         this.selectedYear = this.xToYear(mx);
     }
+
+    selectedYear = this.selectedYear
   }
 
   mouseDrag(mx) {
     if (this.dragging) {
       this.selectedYear = this.xToYear(mx);
     }
-    console.log(this.selectedYear)
+    // console.log(this.selectedYear)
+    selectedYear = this.selectedYear
   }
 
   mouseRelease() {
@@ -81,7 +84,7 @@ class TimelineSlider {
       line(tx, this.y - 10, tx, this.y + 10);
 
       noStroke();
-      fill(200);
+      fill(30);
       textAlign(CENTER);
       textSize(11);
       text(yr, tx, this.y + 25);

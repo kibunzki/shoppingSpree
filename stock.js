@@ -9,6 +9,17 @@ function serialToLabel(serial) {
   return unparsed.slice(0, slice_pos)
 }
 
+function scrollBar(x, y, scrollDelta, scrollBarHeight, low) {
+    stroke(50)
+    strokeWeight(4)
+    fill(50)
+    rect(x, y, 10, scrollBarHeight)
+    noStroke()
+    fill(100)
+    rect(x, map(scrollDelta, 0, low, y, scrollBarHeight + y - scrollBarHeight / 4), 10, scrollBarHeight / 4)
+}
+
+
 class Stock {
   constructor(items, width, height, row_size, col_size) {
     this.items = []; // position: food ID
@@ -23,6 +34,9 @@ class Stock {
       this.visibility.push(true)
       this.pos_matrix.push([(this.width / this.row_size) * (i % this.row_size) + (cX - this.width) / 2, (this.height / this.col_size) * Math.floor(i / this.row_size) + (cY - this.height) / 2])
     }
+    
+    this.scrollBarHeight = cY - 20
+    this.scrollDelta = 0;
   }
 
   
@@ -47,34 +61,43 @@ class Stock {
     for (let i = 0; i < this.pos_matrix.length; i++) {
       let x = this.pos_matrix[i][0]
       let y = this.pos_matrix[i][1]
-      if (mouseX > x && mouseX < x + foodImgSize && mouseY > y && mouseY < y + foodImgSize) {
+      if (mouseX > x && mouseX < x + foodImgSize && mouseY > y + this.scrollDelta && mouseY < y + foodImgSize + this.scrollDelta) {
         return i
       }
     }
     return null
   }
 
-//   mouseInteract(mouseX, mouseY, state) {
-//     this.toggleVisible(mouseToIndex(mouseX, mouseY), state)
-//     console.log(this.mouseToIndex(mouseX, mouseY))
-//   }
-
   getIDFromPos(pos) {
-    // let x = Math.floor(xPos / itemSize)
     return this.items[pos]
+  }
+
+  reset() {
+    for (let i = 0; i < this.items.length; i++) {
+      this.toggleVisible(i, true)
+    }
+  }
+
+  scroll(event) {
+    this.scrollDelta += event.delta * (-1/2);
+    this.scrollDelta = max(min(0, this.scrollDelta), - this.height / 3)
+
+    console.log(this.scrollDelta)
   }
 
 
   render() {
     fill(0)
+
     textAlign(CENTER, TOP)
     for (let i = 0; i < this.visibility.length; i++) {
       // let coords = this.loadSprite(this.items[i])
       if (this.visibility[i]) {
         // image(spriteSheet, this.pos_matrix[i][0], this.pos_matrix[i][1], foodImgSize, foodImgSize, coords["x"], coords["y"], spriteSize, spriteSize)
-        loadSprite(this.items[i], this.pos_matrix[i][0], this.pos_matrix[i][1])
+        loadSprite(this.items[i], this.pos_matrix[i][0], this.pos_matrix[i][1] + this.scrollDelta)
       }
-      text(serialToLabel(this.items[i]), this.pos_matrix[i][0], this.pos_matrix[i][1] + foodImgSize, foodImgSize)
+      text(serialToLabel(this.items[i]), this.pos_matrix[i][0], this.pos_matrix[i][1] + foodImgSize + this.scrollDelta, foodImgSize)
     }
+    scrollBar(cX - 20, (cY - this.scrollBarHeight) / 2, this.scrollDelta, this.scrollBarHeight, - this.height / 3)
   }
 }
